@@ -32,7 +32,7 @@ About:
     Date: 2013
     Name: table2csv
     Version: 0.1
-    URL:
+    URL: https://github.com/hernamesbarbara/table2csv/
 """
 
 import os
