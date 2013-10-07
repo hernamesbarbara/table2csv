@@ -1,5 +1,4 @@
 ### table2csv
-2013 Austin Ogilvie
 
 Simple script for downloading html tables as csv.
 
@@ -32,3 +31,4 @@ Very limited at this point
 * detect the data types found within each column
 * add support for tables with hierarchical indices on the rows and/or columns 
 
+[View on Github](https://github.com/hernamesbarbara/table2csv/)
