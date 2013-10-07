@@ -15,6 +15,13 @@ You can optionally specify columns with links to extract. For example, here we i
         --links 2 \
         --save lawandorder.csv ;
 
+Or you can run it from command line. Here are some examples:
+
+    ./table2csv http://en.wikipedia.org/wiki/List_of_apocalyptic_and_post-apocalyptic_fiction 
+
+    ./table2csv http://lawandorder.wikia.com/wiki/Law_%26_Order_episodes \
+        --columns 1,2 --links 2
+
 #### Features
 Very limited at this point
 * accepts a URL, a local html file, or raw html as valid input

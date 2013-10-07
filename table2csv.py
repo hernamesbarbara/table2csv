@@ -416,11 +416,16 @@ table2csv can only find the biggest table on the page at this time."""
             save_csv(records, outfile)
             sys.stdout.write('\nDONE')
         else:
-            records = table.astype('list')
+            if params is not None:
+                records = table.astype('list', **params)
+            else:
+                records = table.astype('list')
+
             records = [SEP.join(row) for row in records]
             headers = SEP.join(table.headers) + '\n'
             rows = '\n'.join(records)
-            sys.stdout.write(headers+rows)
+            res = headers + rows
+            sys.stdout.write(res)
 
 
 if __name__ == '__main__':

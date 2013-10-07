@@ -48,9 +48,11 @@ else
     console.log 'Reading '.info + src.input + ' as html'.info
     params = ['table2csv.py', src]
     if columns
-            params.push '--columns ' + columns
+            params.push '--columns'
+            params.push columns
     if links
-            params.push '--links ' + links
+            params.push '--links'
+            params.push links
     if save
         params.push '--save'
         if not outfile
