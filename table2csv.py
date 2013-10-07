@@ -6,11 +6,13 @@ Usage:
   table2csv <html> [--columns=<c>] [--links=<l>] [--target=<t>] [(--save <f>) | -p]
   table2csv [-h | --help]
 
-Options:
+Arguments:
     <html>                     URL, html file, or raw input.
-    -c --columns=<c>           Which columns you want.
-    -l --links=<l>             Which columns have links that you want.
+    -c --columns=<colnums>     Which columns you want.
+    -l --links=<linknums>      Which columns have links that you want.
     -t --target=<t>            Which table you want [default: biggest].
+
+Options:
     -s --save                  Save.
     -p --print                 Print.
     <f>                        Output filename required for save.
@@ -35,13 +37,15 @@ About:
     URL: https://github.com/hernamesbarbara/table2csv/
 """
 
-import os
+import sys, os
 from string import punctuation
 import re
 import lxml
 from bs4 import BeautifulSoup
 import requests
 from collections import defaultdict
+
+SEP = '|'
 
 def rm_non_ascii(s):
     "remove any non ascii characters"
@@ -63,7 +67,10 @@ def snakify(txt):
     return s
 
 def is_html(txt):
-    return "doctype" in txt.lower() and "html" in txt.lower()
+    if txt is not None and len(txt):
+        return "doctype" in txt.lower() and "html" in txt.lower()
+    else:
+        return False
 
 def is_url(url_or_html):
     "returns True if string is a valid url"
@@ -204,9 +211,13 @@ class HtmlSrcError(Exception): pass
 
 def raise_src_err(markup=""):
     "raises an error if the input markup cant be understood."
+    if markup is None or markup == '':
+        markup = '`NoneType` or `""` (Empty String)'
+    else:
+        markup = '`{0}`'.format(markup)
     msg = """
-    Unable to interpret resource `{0}` as html.
-    Please use valid URL, a local html file, or raw html markup.
+Unable to interpret resource {0} as html.
+Please use valid URL, a local html file, or raw html markup.
     """.format(markup[:200])
     raise HtmlSrcError,msg
 
@@ -214,7 +225,11 @@ class SurLaTableSoup(BeautifulSoup):
 
     def __init__(self, html, css={}):
         self.css = css
-        self.html = self.process_input_markup(html)
+        try:
+            self.html = self.process_input_markup(html)
+        except HtmlSrcError, err:
+            sys.stderr.write(err.message)
+            exit(1)
         super(SurLaTableSoup, self).__init__(self.html)
         self.rawtables = [t for t in self.find_all('table', attrs=self.css)]
         self.tables = None
@@ -329,22 +344,24 @@ n_rows: {2}"""
 def save_csv(data,outfile):
     import csv
     keys = list(set([ k for doc in data for k in doc.keys()]))
-    print "Number of records found: %d" % len(data)
-    print "Extracting %d columns" % len(keys)
-    print ",".join(keys)
-    print "saving...",
+    info = "Number of records found: %d" % len(data)
+    info += "\nExtracting %d columns" % len(keys)
+    info += "\n" + ",".join(keys)
+    info += "\nsaving..."
+
     try:
-        print outfile
+        info += "\n"+outfile
+        sys.stdout.write(info)
         f = open(outfile, 'wb')
         dict_writer = csv.DictWriter(f, keys)
         dict_writer.writer.writerow(keys)
         dict_writer.writerows(data)
-
     except Exception,err:
-        print outfile
+        info += "\n" + err.message
+        exit(1)
         raise
 
-if __name__ == '__main__':
+def main():
     from docopt import docopt
     arguments = docopt(__doc__, version='table2csv  0.1')
     source_html = arguments.get('<html>', False)
@@ -356,6 +373,7 @@ if __name__ == '__main__':
     outfile = arguments.get("<f>", False)
 
     if save and not outfile:
+        print 'save and not outfile'
         exit("Provide a filename to save results.")
 
     soup = SurLaTableSoup(source_html)
@@ -390,15 +408,20 @@ table2csv can only find the biggest table on the page at this time."""
                 params = {"link_columns": links}
 
         table = soup.extract_biggest_table()
-        if params is not None:
-            records = table.astype('dict',**params)
-        else:
-            records = table.astype('dict')
-
         if save and outfile:
+            if params is not None:
+                records = table.astype('dict',**params)
+            else:
+                records = table.astype('dict')
             save_csv(records, outfile)
+            sys.stdout.write('\nDONE')
         else:
-            exit(records)
+            records = table.astype('list')
+            records = [SEP.join(row) for row in records]
+            headers = SEP.join(table.headers) + '\n'
+            rows = '\n'.join(records)
+            sys.stdout.write(headers+rows)
 
 
-
+if __name__ == '__main__':
+    main()

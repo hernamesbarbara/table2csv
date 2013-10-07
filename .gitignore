@@ -1,7 +1,7 @@
 ### /Users/austinogilvie/.gitignore-boilerplates/Python.gitignore
 
 *.py[cod]
-
+node_modules
 # C extensions
 *.so
 

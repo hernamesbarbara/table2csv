@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+coffee table2csv.coffee $*
