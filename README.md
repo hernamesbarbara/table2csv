@@ -17,7 +17,7 @@ You can optionally specify columns with links to extract. For example, here we i
 
 #### Features
 Very limited at this point
-
+* accepts a URL, a local html file, or raw html as valid input
 * Identifies all the tables on the page as best it can
 * Merges tables that share same structure (e.g. same column headers get merged)
 * Figures out which table is the biggest
