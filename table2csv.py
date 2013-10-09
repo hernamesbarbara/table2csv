@@ -147,7 +147,7 @@ class HtmlTable(object):
         else:
             return None
 
-    def astype(self, output_type, columns=[], link_columns=[]):
+    def astype(self, output_type='list', columns=[], link_columns=[]):
         "convert table to a list of dicts"
         """
         Arguments:
@@ -157,10 +157,10 @@ class HtmlTable(object):
                 list of col indices w/ hyperlinks you want to return in dict.
         Examples:
             1. return columns 2-5 as dictionary.
-                In [158]: table.astype(columns=[1,2,3,4])
+                In [158]: table.astype('list', columns=[1,2,3,4])
 
             2. Include content and links from the third column.
-                In [159]: table.astype(columns=[2], link_columns=[2])
+                In [159]: table.astype('list', columns=[2], link_columns=[2])
         """
         if len(columns) == 0:             # if columns are not provided
             columns = range(self.ncol())  # defaults to all columns
@@ -227,10 +227,9 @@ class SurLaTableSoup(BeautifulSoup):
         self.css = css
         try:
             self.html = self.process_input_markup(html)
-        except HtmlSrcError, err:
-            sys.stderr.write(err.message)
-            exit(1)
-        super(SurLaTableSoup, self).__init__(self.html)
+            super(SurLaTableSoup, self).__init__(self.html)
+        except:
+            raise TypeError('expected html')
         self.rawtables = [t for t in self.find_all('table', attrs=self.css)]
         self.tables = None
         self._group_tables()
@@ -244,6 +243,8 @@ class SurLaTableSoup(BeautifulSoup):
             r = requests.get(txt)
             if r.status_code == 200:
                 markup = r.content
+            else:
+                raise Exception("no html")
         elif is_local_file(txt):
             markup = open(txt,'rb').read()
         if not is_html(markup):
@@ -344,54 +345,48 @@ n_rows: {2}"""
 def save_csv(data,outfile):
     import csv
     keys = list(set([ k for doc in data for k in doc.keys()]))
-    info = "Number of records found: %d" % len(data)
-    info += "\nExtracting %d columns" % len(keys)
-    info += "\n" + ",".join(keys)
-    info += "\nsaving..."
-
     try:
-        info += "\n"+outfile
-        sys.stdout.write(info)
         f = open(outfile, 'wb')
         dict_writer = csv.DictWriter(f, keys)
         dict_writer.writer.writerow(keys)
         dict_writer.writerows(data)
     except Exception,err:
-        info += "\n" + err.message
-        exit(1)
         raise
+
+messages = []
 
 def main():
     from docopt import docopt
     arguments = docopt(__doc__, version='table2csv  0.1')
     source_html = arguments.get('<html>', False)
+    messages.append({'level':'info', 'message': "reading html..."})
+    messages.append({'level':'input', 'message': source_html})
 
     if not source_html:
-        exit("Please provide URL, html file, or raw html as input")
+        messages.append({'level':'error', 'message': 'no html provided.'})
+        return messages
 
     save = arguments.get("--save")
     outfile = arguments.get("<f>", False)
 
     if save and not outfile:
-        print 'save and not outfile'
-        exit("Provide a filename to save results.")
-
-    soup = SurLaTableSoup(source_html)
-
-    if not soup:
-        exit("Trouble interpreting input html. Soup not found.")
+        messages.append({'level':'error', 'message': 'no outfile provided.'})
+        return messages
+    try:
+        soup = SurLaTableSoup(source_html)
+    except:
+        messages.append({'level':'error', 'message': 'couldnt make the soup.'})
+        return messages
 
     if not len(soup.tables):
-        exit("No tables found.")
-
-    print soup.describe()
+        messages.append({'level':'warn', 'message': 'no tables found on this page.'})
+        return messages
 
     target = arguments.get("--target")
     if target != "biggest":
         msg = """
 table2csv can only find the biggest table on the page at this time."""
         raise NotImplementedError(msg)
-
     else:
         columns = arguments.get('--columns', False)
         params = None
@@ -408,13 +403,17 @@ table2csv can only find the biggest table on the page at this time."""
                 params = {"link_columns": links}
 
         table = soup.extract_biggest_table()
+
         if save and outfile:
             if params is not None:
                 records = table.astype('dict',**params)
             else:
                 records = table.astype('dict')
             save_csv(records, outfile)
-            sys.stdout.write('\nDONE')
+            messages.append({'level':'info', 'message': 'saving...%s' % outfile})
+            messages.append({'level':'info', 'message': 'DONE!'})
+            return messages
+
         else:
             if params is not None:
                 records = table.astype('list', **params)
@@ -425,8 +424,17 @@ table2csv can only find the biggest table on the page at this time."""
             headers = SEP.join(table.headers) + '\n'
             rows = '\n'.join(records)
             res = headers + rows
-            sys.stdout.write(res)
-
+            messages.append({'level':'data', 'message': res})
+            messages.append({'level':'info', 'message': 'DONE!'})
+            return messages
 
 if __name__ == '__main__':
-    main()
+    import ujson as json
+    try:
+        result = main()
+    except NotImplementedError, err:
+        messages.append({'level':'error', 'message': err.message})
+    sys.stdout.write(json.dumps(messages))
+    sys.exit()
+
+

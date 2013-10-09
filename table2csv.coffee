@@ -35,40 +35,45 @@ colors.setTheme({
 
 params = docopt(doc, version: '1.0.0rc2')
 
-if not ('<html>' of params)
-    process.exit 1
-else
-    src = params['<html>']
-    target = params['--target']
-    save = '--save' of params and params['--save']
-    outfile = params['<f>']
-    columns = params['--columns']
-    links = params['--links']
+src = params['<html>']
+target = params['--target']
+save = '--save' of params and params['--save']
+outfile = params['<f>']
+columns = params['--columns']
+links = params['--links']
 
-    console.log 'Reading '.info + src.input + ' as html'.info
-    params = ['table2csv.py', src]
-    if columns
-            params.push '--columns'
-            params.push columns
-    if links
-            params.push '--links'
-            params.push links
-    if save
-        params.push '--save'
-        if not outfile
-            console.log 'Provide a filename to save results.'.error
-            process.exit(1)
-        else
-            params.push outfile
+params = ['table2csv.py', src]
+
+if columns
+        params.push '--columns'
+        params.push columns
+if links
+        params.push '--links'
+        params.push links
+if save
+    params.push '--save'
+    if not outfile
+        params.push ''
+    else
+        params.push outfile
+
+
 
 table2csv = spawn 'python', params
 
-table2csv.stdout.on "data", (data) ->
-    if data.toString().trim() == 'DONE'
-        console.log 'DONE'.info
+DATA = ''
+table2csv.stdout.on "data", (chunk) ->
+    DATA += chunk
 
-    else
-        console.log data.toString().trim().data
+table2csv.stdout.on "end", () ->
+    results = JSON.parse DATA
+    for doc in results
+        output = switch doc.level
+            when 'input' then doc.message.input
+            when 'info' then doc.message.info
+            when 'data' then doc.message.data
+            when 'warn' then doc.message.warn
+            when 'error' then doc.message.error
+            else doc.message
 
-table2csv.stderr.on "data", (data) ->
-    console.log data.toString().trim().error
+        console.log output
