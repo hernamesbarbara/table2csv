@@ -41,7 +41,7 @@ import sys, os
 from string import punctuation
 import re
 import lxml
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 import requests
 from collections import defaultdict
 
@@ -82,6 +82,7 @@ def is_local_file(url_or_html):
 
 class HtmlTable(object):
     def __init__(self, soup, discover_links=False):
+        self._drop_first_row = False
         self.soup = soup
         self.rows = None
         self.headers = None
@@ -100,10 +101,15 @@ class HtmlTable(object):
         return None if not self.headers else len(self.headers)
 
     def find_headers(self):
-        headers = [th for th in self.soup.find_all('th')]
+        if self.soup.find('th'):
+            headers = [th for th in self.soup.find_all('th')]
+        else:
+            self._drop_first_row = True
+            headers = [td for td in self.soup.find('tr')]
+
         if not headers or len(headers) == 0:
             return None
-        headers = [th.get_text() for th in headers]
+        headers = [th.get_text() for th in headers if isinstance(th, Tag)]
         headers = [rm_punct(h) for h in headers]
         if self.headers is None and len(headers) > 0:
             self.headers = headers
@@ -113,7 +119,9 @@ class HtmlTable(object):
 
     def find_rows(self):
         rows = []
-        for tr in self.soup.find_all('tr'):
+        for i, tr in enumerate(self.soup.find_all('tr')):
+            if i == 0 and self._drop_first_row:
+                continue
             row = []
             for td in tr.find_all('td'):
                 row.append(td.get_text())
@@ -128,7 +136,9 @@ class HtmlTable(object):
 
     def discover_links(self):
         rows = []
-        for tr in self.soup.find_all('tr'):
+        for i, tr in enumerate(self.soup.find_all('tr')):
+            if i == 0 and self._drop_first_row:
+                continue
             row = []
             for td in tr.find_all('td'):
                 links = []
@@ -360,7 +370,7 @@ def main():
     arguments = docopt(__doc__, version='table2csv  0.1')
     source_html = arguments.get('<html>', False)
     messages.append({'level':'info', 'message': "reading html..."})
-    messages.append({'level':'input', 'message': source_html})
+    messages.append({'level':'info', 'message': source_html})
 
     if not source_html:
         messages.append({'level':'error', 'message': 'no html provided.'})
