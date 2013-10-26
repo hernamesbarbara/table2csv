@@ -43,7 +43,7 @@ columns = params['--columns']
 links = params['--links']
 
 params = ['table2csv.py', src]
-
+console.log src
 if columns
         params.push '--columns'
         params.push columns
