@@ -10,7 +10,6 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup, Tag
 import string
-import matplotlib.pyplot as plt
 import sys
 
 def rm_non_ascii(s):
@@ -146,19 +145,5 @@ def dump_to_stdout(frame, drop_missing=True, sep='|'):
         frame = frame.dropna(how='all', axis=1)
     try:
         frame.to_csv(sys.stdout, sep=sep, index=False, encoding='utf-8')
-        return True
     except:
-        print 'Could not save file'
-        return False
-
-def main():
-    from docopt import docopt
-    arguments = docopt(__doc__, version='table2csv  0.1')
-    url = arguments.get('<url>', False)
-    r = requests.get(url)
-    soup = BeautifulSoup(r.text)
-    df = find_biggest_group_of_tables(soup)
-    dump_to_stdout(df)
-
-if __name__ == '__main__':
-    result = main()
+        sys.stdout.write("couldn't save the file")
