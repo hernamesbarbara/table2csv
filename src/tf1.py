@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""table2csv
-
-Usage:
-  table2csv <url>
-
+"""tf1.py
+Module with various faculties for extracting html tables to csv.
 """
 import pandas as pd
 import requests
