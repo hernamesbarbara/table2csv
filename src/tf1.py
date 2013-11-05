@@ -58,14 +58,16 @@ def find_all_tables(soup):
 
 def find_nth_from_top(soup, nth_table):
     all_tables = find_all_tables(soup)
-    return all_tables[int(nth_table)-1]
+    table = all_tables[int(nth_table)-1]
+    return to_dataframe(table)
 
 def find_biggest_single_table(soup):
     all_tables = find_all_tables(soup)
     lengths = [len(table) for table in all_tables]
     max_length = max(lengths)
     biggest_idx = lengths.index(max_length)
-    return all_tables[biggest_idx]
+    table = all_tables[biggest_idx]
+    return to_dataframe(table)
 
 def extract_txt(tag):
     return [el.get_text().strip() for el in tag if isinstance(el, Tag)]
