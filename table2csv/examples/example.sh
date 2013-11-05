@@ -6,6 +6,6 @@ for URL in $(cat $DIR/urls)
         echo "GET $URL"
         OUTFILE="outfile_${COUNTER}.txt"
         echo "Saving to $OUTFILE"
-        `python $DIR/../tf1.py $URL > $DIR/$OUTFILE`
+        `python $DIR/../table2csv.py $URL > $DIR/$OUTFILE`
         COUNTER=$((COUNTER + 1)) # bump the counter += 1
     done

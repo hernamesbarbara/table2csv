@@ -45,3 +45,4 @@ nosetests.xml
 tmp
 
 src/examples/outfile*txt
+table2csv/examples/outfile*txt

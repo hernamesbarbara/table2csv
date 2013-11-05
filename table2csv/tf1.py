@@ -47,6 +47,13 @@ def snakify(txt):
 def add_column(colname, suffix):
     return colname+'_'+suffix
 
+def get_soup(url):
+    try:
+        r = requests.get(url)
+        return BeautifulSoup(r.text) if r.status_code == 200 else None
+    except:
+        return None
+
 def count_tables(soup):
     return len(list(soup.find_all('table')))
 
@@ -57,12 +64,22 @@ def find_all_tables(soup):
     return [table for table in soup.find_all('table')]
 
 def find_nth_from_top(soup, nth_table):
+    """
+    Find all tables on the page. Return the nth from the top.
+    """
     all_tables = find_all_tables(soup)
+    if not all_tables:
+        return None
     table = all_tables[int(nth_table)-1]
     return to_dataframe(table)
 
 def find_biggest_single_table(soup):
+    """
+    Find all tables on the page. Return the biggest as a DataFrame.
+    """
     all_tables = find_all_tables(soup)
+    if not all_tables:
+        return None
     lengths = [len(table) for table in all_tables]
     max_length = max(lengths)
     biggest_idx = lengths.index(max_length)
@@ -95,6 +112,9 @@ def extract_all_data(table):
     return data
 
 def to_dataframe(table):
+    """
+    Takes a list of lists. Returns a DataFrame. Assumes columns are in table[0].
+    """
     data = extract_all_data(table)
     if len(data) < 2:
         df = pd.DataFrame(data)
@@ -109,11 +129,20 @@ def to_dataframe(table):
     return df
 
 def hash_column_names(columns):
+    """
+    Returns a pipe delimited ('hashed') representation of a list.
+    """
     columns = sorted(columns)
     columns = map(snakify, columns)
     return '|'.join([str(col) for col in columns])
 
 def consolidate(tables):
+    """
+    Takes a list of DataFrames. Returns a dictionary.
+
+    Returns:
+        {'col_a|col_b': df}
+    """
     if not all([isinstance(table, pd.DataFrame) for table in tables]):
         tables = [to_dataframe(table) for table in tables]
     grouped = {}
@@ -126,7 +155,17 @@ def consolidate(tables):
     return grouped
 
 def find_biggest_group_of_tables(soup):
+    """
+    Takes a soup. Returns a DataFrame.
+    Args:
+        soup => BeautifulSoup
+    Returns:
+        The biggest DataFrame resulting in a consolidation of all like tables
+        found on the page.
+    """
     tables = find_all_tables(soup)
+    if not tables:
+        return None
     grouped = consolidate(tables)
     groups = grouped.values()
     lengths = [len(group) for group in groups]
