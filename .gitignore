@@ -44,3 +44,4 @@ nosetests.xml
 *.sublime-workspace
 tmp
 
+src/examples/outfile*txt
