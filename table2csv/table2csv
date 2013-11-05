@@ -1,3 +1,0 @@
-#!/bin/bash
-PATHNAME=~/Workspace/Repositories/opensource
-coffee $PATHNAME/table2csv/table2csv/table2csv.coffee $*
