@@ -8,6 +8,7 @@ import requests
 from bs4 import BeautifulSoup, Tag
 import string
 import sys
+import warnings
 
 def rm_non_ascii(s):
     """
@@ -172,13 +173,15 @@ def find_biggest_group_of_tables(soup):
     max_length = max(lengths)
     biggest_idx = lengths.index(max_length)
     if lengths.count(max_length) > 1:
-        import warnings
         msg = """The biggest table on this page has {nrow} rows.
                         {n_tables} tables have the same # of rows. Extracting the 1st one."""
         warnings.warn(msg.format(nrow=max_length, n_tables=lengths.count(max_length)))
     return groups[biggest_idx].reset_index(drop=1)
 
 def dump_to_stdout(frame, drop_missing=True, sep='|'):
+    if len(frame) <= 1:
+        msg = 'Dataframe has only %d rows.' % len(frame)
+        warnings.warn('\n\n'+msg)
     if drop_missing:
         frame = frame.dropna(how='all', axis=1)
     try:
