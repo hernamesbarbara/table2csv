@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='table2csv',
-        version='0.1.1',
+        version='0.1.2',
         description='Extract data from an HTML table and store results to a csv file.',
         long_description=readme(),
         keywords='Extract HTML tables csv data',
@@ -24,4 +24,5 @@ setup(name='table2csv',
         zip_safe=False,
         entry_points = {
             'console_scripts': ['table2csv=table2csv.command_line:main'],
-        })
+        }
+    )

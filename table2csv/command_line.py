@@ -11,7 +11,7 @@ Options:
 
 from docopt import docopt
 import sys
-from tf1 import find_biggest_group_of_tables, find_nth_from_top, dump_to_stdout, get_soup
+from tf1 import get_soup, find_biggest_group_of_tables, find_nth_from_top, dump_to_stdout
 
 def valid(params):
     url = params.get('<url>', False)
@@ -23,6 +23,7 @@ def valid(params):
 
 def figure_out_what_to_do(params):
     nth = params.get('--nth')
+    func = None
     if nth:
         def func(soup):
             return find_nth_from_top(soup, int(nth))
@@ -30,29 +31,27 @@ def figure_out_what_to_do(params):
         func = find_biggest_group_of_tables
     return func
 
-def main(params):
-    soup = get_soup(params['<url>'])
-    err = 'I dont know how to process that command.\nPlease try again.\n\n'
+def main():
+    arguments = docopt(__doc__, version='table2csv  0.1')
+    err = None
+    if not valid(arguments):
+        err = 'Unable to interpret cmd.\nPlease try again.\n\n'
+        sys.exit(err+__doc__)
+    soup = get_soup(arguments['<url>'])
+    if soup is None:
+        err = "Call to `get_soup` returned `None`.\nYou sure there's a table one that page?\n\n"
+        sys.exit(err+__doc__)
     try:
-        f = figure_out_what_to_do(params)
+        f = figure_out_what_to_do(arguments)
     except:
-        f = None
-    if soup is None or f is None:
-        return (None, err)
+        err = 'Unable to interpret cmd.\nPlease try again.\n\n'
+        sys.exit(err+__doc__)
     df = f(soup)
     if df is None or len(df) == 0:
-        return (None, 'No tables found.\n\n')
-    else:
-        return (df, None)
+        err = 'No tables found.\n\n'
+        sys.exit(err+__doc__)
+    dump_to_stdout(df)
+    sys.exit(0)
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='table2csv  0.1')
-    if valid(arguments):
-        df, err = main(arguments)
-        if err:
-            sys.exit(err+__doc__)
-        dump_to_stdout(df)
-        sys.exit()
-    else:
-        sys.exit('Something went wrong.\n\n'+__doc__)
-
+    main()
