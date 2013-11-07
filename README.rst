@@ -1,19 +1,25 @@
+=========
 table2csv
-~~~~~~~~~
+=========
 
 Simple script for downloading html tables as csv.
 
-A quick review:
-^^^^^^^^^^^^^^^
+Installation
+============
 
-.. code:: python
+.. code:: bash
 
+    pip install -U table2csv
 
-    python table2csv.py \
-        http://www.fbi.gov/about-us/cjis/ucr/crime-in-the-u.s/2011/crime-in-the-u.s.-2011/tables/table-2 >> dump.txt
+Usage
+=====
+
+.. code:: bash
+
+    table2csv http://en.wikipedia.org/wiki/List_of_Super_Bowl_champions > dump.txt
 
 Features
-^^^^^^^^
+========
 
 -  accepts a URL
 -  Identifies all the tables
@@ -24,11 +30,11 @@ Features
 -  extracts links
 
 TODO
-^^^^
+====
 
 -  add the ability to specify which table on the page you would like to
    download (not just the biggest one)
--  [STRIKEOUT:add support for columns that do not use proper ``<th>``
+-  add support for columns that do not use proper ``<th>`` tags [DONE]
    tags for headers (i.e. imperfect html tables)]
 -  detect the data types found within each column
 -  add support for tables with hierarchical indices on the rows and/or

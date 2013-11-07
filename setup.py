@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='table2csv',
-        version='0.1.2',
+        version='0.1.3',
         description='Extract data from an HTML table and store results to a csv file.',
         long_description=readme(),
         keywords='Extract HTML tables csv data',

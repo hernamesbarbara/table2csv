@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import table2csv
-import re
 
 url = 'http://lawandorder.wikia.com/wiki/Law_%26_Order_episodes'
 
 soup = table2csv.get_soup(url)
-df = table2csv.find_nth_from_top(soup, 2) # df is a pandas dataframe
-table2csv.dump_to_stdout(df)
-
 df = table2csv.find_nth_from_top(soup, 2) # df is a pandas dataframe
 table2csv.dump_to_stdout(df)
 
