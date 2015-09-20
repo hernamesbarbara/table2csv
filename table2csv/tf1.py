@@ -51,7 +51,7 @@ def add_column(colname, suffix):
 def get_soup(url):
     try:
         r = requests.get(url)
-        return BeautifulSoup(r.text) if r.status_code == 200 else None
+        return BeautifulSoup(r.text, "html.parser") if r.status_code == 200 else None
     except:
         return None
 
@@ -135,7 +135,7 @@ def hash_column_names(columns):
     """
     columns = sorted(columns)
     columns = map(snakify, columns)
-    return '|'.join([str(col) for col in columns])
+    return ','.join([str(col) for col in columns])
 
 def consolidate(tables):
     """
@@ -178,10 +178,7 @@ def find_biggest_group_of_tables(soup):
         warnings.warn(msg.format(nrow=max_length, n_tables=lengths.count(max_length)))
     return groups[biggest_idx].reset_index(drop=1)
 
-def dump_to_stdout(frame, drop_missing=True, sep='|'):
-    if len(frame) <= 1:
-        msg = 'Dataframe has only %d rows.' % len(frame)
-        warnings.warn('\n\n'+msg)
+def dump_to_stdout(frame, drop_missing=True, sep=','):
     if drop_missing:
         frame = frame.dropna(how='all', axis=1)
     try:
