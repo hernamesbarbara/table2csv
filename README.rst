@@ -17,6 +17,9 @@ Usage
 .. code:: bash
 
     table2csv http://en.wikipedia.org/wiki/List_of_Super_Bowl_champions > dump.txt
+    python -m table2csv.main http://en.wikipedia.org/wiki/List_of_Super_Bowl_champions > dump.txt
+
+Use --nth=[int] to grab a certain table from the page.
 
 Features
 ========
@@ -32,10 +35,6 @@ Features
 TODO
 ====
 
--  add the ability to specify which table on the page you would like to
-   download (not just the biggest one)
--  add support for columns that do not use proper ``<th>`` tags [DONE]
-   tags for headers (i.e. imperfect html tables)]
 -  detect the data types found within each column
 -  add support for tables with hierarchical indices on the rows and/or
    columns
